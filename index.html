@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Horas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .icon {
+            width: 48px;
+            height: 48px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .month-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-section {
+            background: white;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .label {
+            display: block;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card.blue { background: #eff6ff; }
+        .stat-card.gray { background: #f9fafb; }
+        .stat-card.red { background: #fef2f2; }
+        .stat-card.green { background: #f0fdf4; }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-value.blue { color: #2563eb; }
+        .stat-value.gray { color: #6b7280; }
+        .stat-value.red { color: #dc2626; }
+        .stat-value.green { color: #16a34a; }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .details-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .detail-total {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 2px solid #e5e7eb;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .records-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .record-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: white;
+            transition: background-color 0.2s;
+        }
+
+        .record-item:hover {
+            background: #f9fafb;
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .record-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            flex: 1;
+        }
+
+        .record-field {
+            text-align: left;
+        }
+
+        .record-field-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+
+        .record-field-value {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .rates-table {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .rates-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .rate-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="card">
+            <div class="header">
+                <div class="icon">🕐</div>
+                <div>
+                    <h1 class="title">Sistema de Controle de Horas</h1>
+                    <p class="subtitle">Controle de ponto e cálculo salarial</p>
+                </div>
+            </div>
+
+            <div class="month-controls">
+                <span>📅</span>
+                <select id="monthSelect" class="input" style="width: auto;">
+                    <option value="0">Janeiro</option>
+                    <option value="1">Fevereiro</option>
+                    <option value="2">Março</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Maio</option>
+                    <option value="5">Junho</option>
+                    <option value="6">Julho</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Setembro</option>
+                    <option value="9">Outubro</option>
+                    <option value="10">Novembro</option>
+                    <option value="11">Dezembro</option>
+                </select>
+                <select id="yearSelect" class="input" style="width: auto;">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <!-- Formulário -->
+            <div class="card">
+                <h2 class="section-title">
+                    ➕ Novo Registro
+                </h2>
+
+                <div class="form-group">
+                    <label class="label">Data</label>
+                    <input type="date" id="dateInput" class="input">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Hora de Entrada</label>
+                    <input type="time" id="entryInput" class="input">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Hora de Saída</label>
+                    <input type="time" id="exitInput" class="input">
+                </div>
+
+                <button onclick="addRecord()" class="btn">
+                    Adicionar Registro
+                </button>
+
+                <div style="margin-top: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border: 1px solid #0ea5e9;">
+                    <h3 style="margin: 0 0 12px 0; color: #0369a1; font-size: 16px;">💾 Backup dos Dados</h3>
+                    <button onclick="exportData()" class="btn" style="margin-bottom: 8px; background: #0ea5e9;">
+                        📥 Fazer Backup
+                    </button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData()">
+                    <button onclick="document.getElementById('importFile').click()" class="btn" style="background: #059669;">
+                        📤 Restaurar Backup
+                    </button>
+                    <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+                        Recomendado: Fazer backup mensalmente
+                    </div>
+                </div>
+
+                <div class="rates-table">
+                    <h3 class="rates-title">Valores por Hora</h3>
+                    <div class="rate-row">
+                        <span>Normal:</span>
+                        <span><strong>R$ 9,09</strong></span>
+                    </div>
+                    <div class="rate-row">
+                        <span>Extra Diurna:</span>
+                        <span><strong>R$ 13,64</strong></span>
+                    </div>
+                    <div class="rate-row">
+                        <span>Extra Noturna:</span>
+                        <span><strong>R$ 16,37</strong></span>
+                    </div>
+                    <div class="rate-row">
+                        <span>Extra Fim de Semana:</span>
+                        <span><strong>R$ 18,18</strong></span>
+                    </div>
+                </div>
+
+                <div class="rates-table" style="margin-top: 16px;">
+                    <h3 class="rates-title">⏰ Desconto de Intervalo</h3>
+                    <div class="rate-row">
+                        <span>Até 4h:</span>
+                        <span>Sem desconto</span>
+                    </div>
+                    <div class="rate-row">
+                        <span>4h a 6h:</span>
+                        <span>-15min (intervalo)</span>
+                    </div>
+                    <div class="rate-row">
+                        <span>Acima de 6h:</span>
+                        <span><strong>-1h (almoço)</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumo e Registros -->
+            <div>
+                <!-- Resumo Mensal -->
+                <div class="card">
+                    <h2 class="section-title">
+                        💰 <span id="monthlyTitle">Resumo Mensal</span>
+                    </h2>
+
+                    <div class="stats-grid">
+                        <div class="stat-card blue">
+                            <div class="stat-value blue" id="totalWorked">0</div>
+                            <div class="stat-label">Horas Trabalhadas</div>
+                        </div>
+                        <div class="stat-card gray">
+                            <div class="stat-value gray" id="totalExpected">0</div>
+                            <div class="stat-label">Horas Esperadas</div>
+                        </div>
+                        <div class="stat-card red">
+                            <div class="stat-value red" id="totalMissing">0</div>
+                            <div class="stat-label">Horas em Falta</div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-value green" id="finalSalary">R$ 0,00</div>
+                            <div class="stat-label">Salário Final</div>
+                        </div>
+                    </div>
+
+                    <div class="details-section">
+                        <h3 class="rates-title">Detalhamento Financeiro</h3>
+                        <div class="details-grid">
+                            <div>
+                                <div class="detail-row">
+                                    <span>Salário Base (220h):</span>
+                                    <span id="baseSalary">R$ 1.999,80</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span>Horas Extra Diurnas:</span>
+                                    <span id="extraDayPay">R$ 0,00</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span>Horas Extra Noturnas:</span>
+                                    <span id="extraNightPay">R$ 0,00</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="detail-row">
+                                    <span>Horas Extra Fim de Semana:</span>
+                                    <span id="extraWeekendPay">R$ 0,00</span>
+                                </div>
+                                <div class="detail-row" style="color: #dc2626;">
+                                    <span>Desconto por Faltas:</span>
+                                    <span id="discountPay">-R$ 0,00</span>
+                                </div>
+                                <div class="detail-total" style="color: #16a34a;">
+                                    <span>Total a Pagar:</span>
+                                    <span id="totalPay">R$ 1.999,80</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 6px; font-size: 12px; color: #92400e;">
+                            <strong>⚖️ Cálculo Correto:</strong> Faltas são descontadas integralmente por dia, sem compensação com horas extras.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Registros -->
+                <div class="card">
+                    <h2 class="section-title">
+                        📋 <span id="recordsTitle">Registros do Mês</span>
+                    </h2>
+                    
+                    <div id="recordsList" class="records-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <p>Nenhum registro encontrado para este mês</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Valores das horas
+        const hourlyRates = {
+            normal: 9.09,
+            extraDay: 13.64,
+            extraNight: 16.37,
+            extraWeekend: 18.18
+        };
+
+        // Estados globais
+        let records = [];
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        // Nomes dos meses
+        const monthNames = [
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            updateMonthSelect();
+            updateDisplay();
+            
+            // Set data atual - garantindo formato correto
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            document.getElementById('dateInput').value = formattedDate;
+            
+            // Event listeners
+            document.getElementById('monthSelect').addEventListener('change', function() {
+                currentMonth = parseInt(this.value);
+                updateDisplay();
+            });
+            
+            document.getElementById('yearSelect').addEventListener('change', function() {
+                currentYear = parseInt(this.value);
+                updateDisplay();
+            });
+        });
+
+        // Salvar dados no localStorage
+        function saveData() {
+            localStorage.setItem('timesheetRecords', JSON.stringify(records));
+        }
+
+        // Carregar dados do localStorage
+        function loadData() {
+            const saved = localStorage.getItem('timesheetRecords');
+            if (saved) {
+                records = JSON.parse(saved);
+            }
+        }
+
+        // Atualizar seletor de mês
+        function updateMonthSelect() {
+            document.getElementById('monthSelect').value = currentMonth;
+            document.getElementById('yearSelect').value = currentYear;
+        }
+
+        // Verificar se é fim de semana (domingo)
+        function isWeekend(date) {
+            return new Date(date + 'T00:00:00').getDay() === 0; // Domingo
+        }
+
+        // Verificar se é sábado
+        function isSaturday(date) {
+            return new Date(date + 'T00:00:00').getDay() === 6;
+        }
+
+        // Calcular horas trabalhadas (descontando intervalo)
+        function calculateWorkedHours(entry, exit) {
+            if (!entry || !exit) return 0;
+            
+            const entryDate = new Date(`2000-01-01T${entry}:00`);
+            const exitDate = new Date(`2000-01-01T${exit}:00`);
+            
+            if (exitDate < entryDate) {
+                exitDate.setDate(exitDate.getDate() + 1);
+            }
+            
+            const diffMs = exitDate - entryDate;
+            const totalHours = diffMs / (1000 * 60 * 60);
+            
+            // Descontar intervalo automaticamente
+            // Se trabalhou mais de 6 horas, desconta 1 hora de almoço
+            if (totalHours > 6) {
+                return totalHours - 1;
+            }
+            // Se trabalhou entre 4 e 6 horas, desconta 15 minutos
+            else if (totalHours > 4) {
+                return totalHours - 0.25;
+            }
+            // Até 4 horas, sem desconto de intervalo
+            else {
+                return totalHours;
+            }
+        }
+
+        // Obter horas esperadas
+        function getExpectedHours(date) {
+            if (isWeekend(date)) return 0;
+            if (isSaturday(date)) return 4;
+            return 8;
+        }
+
+        // Classificar horas extras
+        function classifyExtraHours(date, entry, exit, workedHours) {
+            const expectedHours = getExpectedHours(date);
+            const extraHours = Math.max(0, workedHours - expectedHours);
+            
+            if (extraHours === 0) return { day: 0, night: 0, weekend: 0 };
+            
+            if (isWeekend(date)) {
+                return { day: 0, night: 0, weekend: workedHours };
+            }
+            
+            const entryHour = parseInt(entry.split(':')[0]);
+            const exitHour = parseInt(exit.split(':')[0]);
+            
+            let nightHours = 0;
+            let dayExtraHours = extraHours;
+            
+            if (entryHour >= 22 || entryHour < 5 || exitHour >= 22 || exitHour < 5) {
+                if (entryHour >= 22 || exitHour <= 5) {
+                    const nightPortion = Math.min(extraHours, workedHours * 0.3);
+                    nightHours = nightPortion;
+                    dayExtraHours = extraHours - nightHours;
+                }
+            }
+            
+            return { day: dayExtraHours, night: nightHours, weekend: 0 };
+        }
+
+        // Adicionar registro
+        function addRecord() {
+            const date = document.getElementById('dateInput').value;
+            const entry = document.getElementById('entryInput').value;
+            const exit = document.getElementById('exitInput').value;
+
+            if (!date || !entry || !exit) {
+                alert('Por favor, preencha todos os campos');
+                return;
+            }
+
+            const workedHours = calculateWorkedHours(entry, exit);
+            const expectedHours = getExpectedHours(date);
+            const extraHours = classifyExtraHours(date, entry, exit, workedHours);
+
+            const newRecord = {
+                id: Date.now(),
+                date: date,
+                entryTime: entry,
+                exitTime: exit,
+                workedHours: workedHours,
+                expectedHours: expectedHours,
+                extraHours: extraHours
+            };
+
+            records.push(newRecord);
+            saveData();
+            updateDisplay();
+
+            // Limpar formulário
+            document.getElementById('entryInput').value = '';
+            document.getElementById('exitInput').value = '';
+        }
+
+        // Remover registro
+        function removeRecord(id) {
+            records = records.filter(record => record.id !== id);
+            saveData();
+            updateDisplay();
+        }
+
+        // Obter registros do mês atual
+        function getCurrentMonthRecords() {
+            return records.filter(record => {
+                const recordDate = new Date(record.date + 'T00:00:00');
+                return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
+            });
+        }
+
+        // Calcular totais mensais
+        function calculateMonthlyTotals() {
+            const monthRecords = getCurrentMonthRecords();
+            
+            let totalWorkedHours = 0;
+            let totalExpectedHours = 0;
+            let totalExtraDay = 0;
+            let totalExtraNight = 0;
+            let totalExtraWeekend = 0;
+            let totalMissingHours = 0; // Soma das faltas individuais
+
+            monthRecords.forEach(record => {
+                totalWorkedHours += record.workedHours;
+                totalExpectedHours += record.expectedHours;
+                totalExtraDay += record.extraHours.day;
+                totalExtraNight += record.extraHours.night;
+                totalExtraWeekend += record.extraHours.weekend;
+                
+                // Calcular faltas por dia (método correto)
+                const dailyShortage = Math.max(0, record.expectedHours - record.workedHours);
+                totalMissingHours += dailyShortage;
+            });
+
+            // Usar o total de faltas individuais, não a diferença global
+            const discountForMissingHours = totalMissingHours * hourlyRates.normal;
+
+            const extraPayment = 
+                (totalExtraDay * hourlyRates.extraDay) +
+                (totalExtraNight * hourlyRates.extraNight) +
+                (totalExtraWeekend * hourlyRates.extraWeekend);
+
+            const baseSalary = 220 * hourlyRates.normal;
+            const finalSalary = baseSalary + extraPayment - discountForMissingHours;
+
+            return {
+                totalWorkedHours: totalWorkedHours.toFixed(2),
+                totalExpectedHours: totalExpectedHours.toFixed(2),
+                missingHours: totalMissingHours.toFixed(2), // Agora são as faltas reais
+                totalExtraDay: totalExtraDay.toFixed(2),
+                totalExtraNight: totalExtraNight.toFixed(2),
+                totalExtraWeekend: totalExtraWeekend.toFixed(2),
+                baseSalary: baseSalary.toFixed(2),
+                extraPayment: extraPayment.toFixed(2),
+                discountForMissingHours: discountForMissingHours.toFixed(2),
+                finalSalary: finalSalary.toFixed(2)
+            };
+        }
+
+        // Atualizar display
+        function updateDisplay() {
+            const monthRecords = getCurrentMonthRecords();
+            const totals = calculateMonthlyTotals();
+
+            // Atualizar títulos
+            document.getElementById('monthlyTitle').textContent = `Resumo - ${monthNames[currentMonth]} ${currentYear}`;
+            document.getElementById('recordsTitle').textContent = `Registros do Mês (${monthRecords.length} dias)`;
+
+            // Atualizar estatísticas
+            document.getElementById('totalWorked').textContent = totals.totalWorkedHours;
+            document.getElementById('totalExpected').textContent = totals.totalExpectedHours;
+            document.getElementById('totalMissing').textContent = totals.missingHours;
+            document.getElementById('finalSalary').textContent = `R$ ${totals.finalSalary}`;
+
+            // Atualizar detalhamento financeiro
+            document.getElementById('baseSalary').textContent = `R$ ${totals.baseSalary}`;
+            document.getElementById('extraDayPay').textContent = `R$ ${(parseFloat(totals.totalExtraDay) * hourlyRates.extraDay).toFixed(2)}`;
+            document.getElementById('extraNightPay').textContent = `R$ ${(parseFloat(totals.totalExtraNight) * hourlyRates.extraNight).toFixed(2)}`;
+            document.getElementById('extraWeekendPay').textContent = `R$ ${(parseFloat(totals.totalExtraWeekend) * hourlyRates.extraWeekend).toFixed(2)}`;
+            document.getElementById('discountPay').textContent = `-R$ ${totals.discountForMissingHours}`;
+            document.getElementById('totalPay').textContent = `R$ ${totals.finalSalary}`;
+
+            // Atualizar lista de registros
+            updateRecordsList(monthRecords);
+        }
+
+        // Atualizar lista de registros
+        function updateRecordsList(monthRecords) {
+            const recordsList = document.getElementById('recordsList');
+            
+            if (monthRecords.length === 0) {
+                recordsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <p>Nenhum registro encontrado para este mês</p>
+                    </div>
+                `;
+                return;
+            }
+
+            recordsList.innerHTML = monthRecords.map(record => {
+                const totalExtra = (record.extraHours.day + record.extraHours.night + record.extraHours.weekend).toFixed(2);
+                const weekday = new Date(record.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'short' });
+                
+                // Calcular tempo bruto (sem desconto de intervalo)
+                const entryDate = new Date(`2000-01-01T${record.entryTime}:00`);
+                const exitDate = new Date(`2000-01-01T${record.exitTime}:00`);
+                if (exitDate < entryDate) exitDate.setDate(exitDate.getDate() + 1);
+                const grossHours = (exitDate - entryDate) / (1000 * 60 * 60);
+                const intervalDiscount = grossHours - record.workedHours;
+                
+                // Calcular falta do dia
+                const dailyShortage = Math.max(0, record.expectedHours - record.workedHours);
+                const hasShortage = dailyShortage > 0;
+                
+                return `
+                    <div class="record-item" style="${hasShortage ? 'border-left: 4px solid #ef4444; background: #fef2f2;' : ''}">
+                        <div class="record-header">
+                            <div class="record-details">
+                                <div class="record-field">
+                                    <div class="record-field-label">Data</div>
+                                    <div class="record-field-value">${new Date(record.date + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
+                                    <div class="record-field-label">${weekday}</div>
+                                </div>
+                                <div class="record-field">
+                                    <div class="record-field-label">Horário</div>
+                                    <div class="record-field-value">${record.entryTime} - ${record.exitTime}</div>
+                                </div>
+                                <div class="record-field">
+                                    <div class="record-field-label">Trabalhadas</div>
+                                    <div class="record-field-value">${record.workedHours.toFixed(2)}h</div>
+                                    ${intervalDiscount > 0 ? `<div class="record-field-label" style="color: #6b7280;">(${grossHours.toFixed(2)}h - ${intervalDiscount.toFixed(2)}h intervalo)</div>` : ''}
+                                </div>
+                                <div class="record-field">
+                                    <div class="record-field-label">Extras</div>
+                                    <div class="record-field-value">${totalExtra}h</div>
+                                </div>
+                                ${hasShortage ? `
+                                <div class="record-field">
+                                    <div class="record-field-label" style="color: #dc2626;">Falta</div>
+                                    <div class="record-field-value" style="color: #dc2626; font-weight: bold;">${dailyShortage.toFixed(2)}h</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                            <button onclick="removeRecord(${record.id})" class="btn-danger">×</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Exportar dados (fazer backup)
+        function exportData() {
+            const dataToExport = {
+                records: records,
+                exportDate: new Date().toISOString(),
+                version: "1.0"
+            };
+
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const currentDate = new Date();
+            const fileName = `backup-controle-horas-${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}.json`;
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert(`✅ Backup realizado com sucesso!\n\nArquivo: ${fileName}\n\nGuarde este arquivo em local seguro (ex: Google Drive, OneDrive).`);
+        }
+
+        // Importar dados (restaurar backup)
+        function importData() {
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            if (!file.name.endsWith('.json')) {
+                alert('❌ Por favor, selecione um arquivo de backup válido (.json)');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Validar estrutura do arquivo
+                    if (!importedData.records || !Array.isArray(importedData.records)) {
+                        throw new Error('Arquivo de backup inválido');
+                    }
+
+                    // Confirmar restauração
+                    const recordCount = importedData.records.length;
+                    const exportDate = importedData.exportDate ? new Date(importedData.exportDate).toLocaleDateString('pt-BR') : 'desconhecida';
+                    
+                    const confirmRestore = confirm(
+                        `🔄 Restaurar Backup?\n\n` +
+                        `• Registros no backup: ${recordCount}\n` +
+                        `• Data do backup: ${exportDate}\n` +
+                        `• Registros atuais: ${records.length}\n\n` +
+                        `⚠️ ATENÇÃO: Isto substituirá todos os dados atuais!\n\n` +
+                        `Continuar?`
+                    );
+
+                    if (!confirmRestore) return;
+
+                    // Fazer backup dos dados atuais antes de restaurar
+                    const currentBackup = {
+                        records: records,
+                        exportDate: new Date().toISOString(),
+                        version: "1.0"
+                    };
+                    localStorage.setItem('timesheetRecords_backup_before_restore', JSON.stringify(currentBackup));
+
+                    // Restaurar dados
+                    records = importedData.records;
+                    saveData();
+                    updateDisplay();
+
+                    alert(`✅ Backup restaurado com sucesso!\n\n${recordCount} registros foram carregados.\n\nOs dados anteriores foram salvos como backup de segurança.`);
+
+                } catch (error) {
+                    alert(`❌ Erro ao restaurar backup:\n\n${error.message}\n\nVerifique se o arquivo é um backup válido do sistema.`);
+                }
+            };
+
+            reader.readAsText(file);
+            fileInput.value = ''; // Limpar input
+        }
+    </script>
+</body>
+</html>
