@@ -61,6 +61,39 @@
             margin-top: 4px;
         }
 
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .status-online {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-offline {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .status-config {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .config-section {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
         .month-controls {
             display: flex;
             align-items: center;
@@ -124,6 +157,11 @@
 
         .btn:hover {
             background: #2563eb;
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
         }
 
         .btn-danger {
@@ -296,26 +334,88 @@
             gap: 8px;
         }
 
-        .alert {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 16px;
-            color: #92400e;
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Configuração Firebase -->
+        <div id="configSection" class="config-section">
+            <h2 style="color: #92400e; margin-bottom: 16px;">🔧 Configuração do Firebase</h2>
+            <p style="margin-bottom: 16px;">Para usar o sistema online, configure suas credenciais do Firebase:</p>
+            
+            <div class="form-grid">
+                <div>
+                    <div class="form-group">
+                        <label class="label">API Key</label>
+                        <input type="text" id="apiKey" class="input" placeholder="AIzaSy...">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Auth Domain</label>
+                        <input type="text" id="authDomain" class="input" placeholder="projeto.firebaseapp.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Project ID</label>
+                        <input type="text" id="projectId" class="input" placeholder="projeto-id">
+                    </div>
+                </div>
+                <div>
+                    <div class="form-group">
+                        <label class="label">Storage Bucket</label>
+                        <input type="text" id="storageBucket" class="input" placeholder="projeto.appspot.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Messaging Sender ID</label>
+                        <input type="text" id="messagingSenderId" class="input" placeholder="123456789">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">App ID</label>
+                        <input type="text" id="appId" class="input" placeholder="1:123:web:abc123">
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="initializeFirebase()" class="btn">
+                🔥 Conectar com Firebase
+            </button>
+            
+            <div style="margin-top: 12px;">
+                <button onclick="window.location.reload()" class="btn" style="background: #6b7280; font-size: 14px; padding: 8px 16px;">
+                    🔄 Recarregar Página (se Firebase não carregou)
+                </button>
+            </div>
+        </div>
+
         <!-- Header -->
         <div class="card">
             <div class="header">
                 <div class="icon">🕐</div>
                 <div>
                     <h1 class="title">Sistema de Controle de Horas</h1>
-                    <p class="subtitle">Controle de ponto e cálculo salarial</p>
+                    <p class="subtitle">Controle de ponto com sincronização na nuvem</p>
                 </div>
+            </div>
+
+            <div id="statusIndicator" class="status-indicator status-config">
+                <span>⚙️</span>
+                <span>Configure o Firebase para começar</span>
             </div>
 
             <div class="month-controls">
@@ -342,164 +442,157 @@
             </div>
         </div>
 
-        <div class="form-grid">
-            <!-- Formulário -->
-            <div class="card">
-                <h2 class="section-title">
-                    ➕ Novo Registro
-                </h2>
-
-                <div class="form-group">
-                    <label class="label">Data</label>
-                    <input type="date" id="dateInput" class="input">
-                </div>
-
-                <div class="form-group">
-                    <label class="label">Hora de Entrada</label>
-                    <input type="time" id="entryInput" class="input">
-                </div>
-
-                <div class="form-group">
-                    <label class="label">Hora de Saída</label>
-                    <input type="time" id="exitInput" class="input">
-                </div>
-
-                <button onclick="addRecord()" class="btn">
-                    Adicionar Registro
-                </button>
-
-                <div style="margin-top: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border: 1px solid #0ea5e9;">
-                    <h3 style="margin: 0 0 12px 0; color: #0369a1; font-size: 16px;">💾 Backup dos Dados</h3>
-                    <button onclick="exportData()" class="btn" style="margin-bottom: 8px; background: #0ea5e9;">
-                        📥 Fazer Backup
-                    </button>
-                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData()">
-                    <button onclick="document.getElementById('importFile').click()" class="btn" style="background: #059669;">
-                        📤 Restaurar Backup
-                    </button>
-                    <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
-                        Recomendado: Fazer backup mensalmente
-                    </div>
-                </div>
-
-                <div class="rates-table">
-                    <h3 class="rates-title">Valores por Hora</h3>
-                    <div class="rate-row">
-                        <span>Normal:</span>
-                        <span><strong>R$ 9,09</strong></span>
-                    </div>
-                    <div class="rate-row">
-                        <span>Extra Diurna:</span>
-                        <span><strong>R$ 13,64</strong></span>
-                    </div>
-                    <div class="rate-row">
-                        <span>Extra Noturna:</span>
-                        <span><strong>R$ 16,37</strong></span>
-                    </div>
-                    <div class="rate-row">
-                        <span>Extra Fim de Semana:</span>
-                        <span><strong>R$ 18,18</strong></span>
-                    </div>
-                </div>
-
-                <div class="rates-table" style="margin-top: 16px;">
-                    <h3 class="rates-title">⏰ Desconto de Intervalo</h3>
-                    <div class="rate-row">
-                        <span>Até 4h:</span>
-                        <span>Sem desconto</span>
-                    </div>
-                    <div class="rate-row">
-                        <span>4h a 6h:</span>
-                        <span>-15min (intervalo)</span>
-                    </div>
-                    <div class="rate-row">
-                        <span>Acima de 6h:</span>
-                        <span><strong>-1h (almoço)</strong></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Resumo e Registros -->
-            <div>
-                <!-- Resumo Mensal -->
+        <div id="mainSystem" class="hidden">
+            <div class="form-grid">
+                <!-- Formulário -->
                 <div class="card">
                     <h2 class="section-title">
-                        💰 <span id="monthlyTitle">Resumo Mensal</span>
+                        ➕ Novo Registro
                     </h2>
 
-                    <div class="stats-grid">
-                        <div class="stat-card blue">
-                            <div class="stat-value blue" id="totalWorked">0</div>
-                            <div class="stat-label">Horas Trabalhadas</div>
+                    <div class="form-group">
+                        <label class="label">Data</label>
+                        <input type="date" id="dateInput" class="input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label">Hora de Entrada</label>
+                        <input type="time" id="entryInput" class="input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label">Hora de Saída</label>
+                        <input type="time" id="exitInput" class="input">
+                    </div>
+
+                    <button onclick="addRecord()" class="btn" id="addButton">
+                        <span class="loading hidden" id="addLoading"></span>
+                        Adicionar Registro
+                    </button>
+
+                    <div class="rates-table">
+                        <h3 class="rates-title">Valores por Hora</h3>
+                        <div class="rate-row">
+                            <span>Normal:</span>
+                            <span><strong>R$ 9,09</strong></span>
                         </div>
-                        <div class="stat-card gray">
-                            <div class="stat-value gray" id="totalExpected">0</div>
-                            <div class="stat-label">Horas Esperadas</div>
+                        <div class="rate-row">
+                            <span>Extra Diurna:</span>
+                            <span><strong>R$ 13,64</strong></span>
                         </div>
-                        <div class="stat-card red">
-                            <div class="stat-value red" id="totalMissing">0</div>
-                            <div class="stat-label">Horas em Falta</div>
+                        <div class="rate-row">
+                            <span>Extra Noturna:</span>
+                            <span><strong>R$ 16,37</strong></span>
                         </div>
-                        <div class="stat-card green">
-                            <div class="stat-value green" id="finalSalary">R$ 0,00</div>
-                            <div class="stat-label">Salário Final</div>
+                        <div class="rate-row">
+                            <span>Extra Fim de Semana:</span>
+                            <span><strong>R$ 18,18</strong></span>
                         </div>
                     </div>
 
-                    <div class="details-section">
-                        <h3 class="rates-title">Detalhamento Financeiro</h3>
-                        <div class="details-grid">
-                            <div>
-                                <div class="detail-row">
-                                    <span>Salário Base (220h):</span>
-                                    <span id="baseSalary">R$ 1.999,80</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span>Horas Extra Diurnas:</span>
-                                    <span id="extraDayPay">R$ 0,00</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span>Horas Extra Noturnas:</span>
-                                    <span id="extraNightPay">R$ 0,00</span>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="detail-row">
-                                    <span>Horas Extra Fim de Semana:</span>
-                                    <span id="extraWeekendPay">R$ 0,00</span>
-                                </div>
-                                <div class="detail-row" style="color: #dc2626;">
-                                    <span>Desconto por Faltas:</span>
-                                    <span id="discountPay">-R$ 0,00</span>
-                                </div>
-                                <div class="detail-total" style="color: #16a34a;">
-                                    <span>Total a Pagar:</span>
-                                    <span id="totalPay">R$ 1.999,80</span>
-                                </div>
-                            </div>
+                    <div class="rates-table" style="margin-top: 16px;">
+                        <h3 class="rates-title">⏰ Desconto de Intervalo</h3>
+                        <div class="rate-row">
+                            <span>Até 4h:</span>
+                            <span>Sem desconto</span>
                         </div>
-                        <div style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 6px; font-size: 12px; color: #92400e;">
-                            <strong>⚖️ Cálculo Correto:</strong> Faltas são descontadas integralmente por dia, sem compensação com horas extras.
+                        <div class="rate-row">
+                            <span>4h a 6h:</span>
+                            <span>-15min (intervalo)</span>
+                        </div>
+                        <div class="rate-row">
+                            <span>Acima de 6h:</span>
+                            <span><strong>-1h (almoço)</strong></span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Lista de Registros -->
-                <div class="card">
-                    <h2 class="section-title">
-                        📋 <span id="recordsTitle">Registros do Mês</span>
-                    </h2>
-                    
-                    <div id="recordsList" class="records-list">
-                        <div class="empty-state">
-                            <div class="empty-icon">⚠️</div>
-                            <p>Nenhum registro encontrado para este mês</p>
+                <!-- Resumo e Registros -->
+                <div>
+                    <!-- Resumo Mensal -->
+                    <div class="card">
+                        <h2 class="section-title">
+                            💰 <span id="monthlyTitle">Resumo Mensal</span>
+                        </h2>
+
+                        <div class="stats-grid">
+                            <div class="stat-card blue">
+                                <div class="stat-value blue" id="totalWorked">0</div>
+                                <div class="stat-label">Horas Trabalhadas</div>
+                            </div>
+                            <div class="stat-card gray">
+                                <div class="stat-value gray" id="totalExpected">0</div>
+                                <div class="stat-label">Horas Esperadas</div>
+                            </div>
+                            <div class="stat-card red">
+                                <div class="stat-value red" id="totalMissing">0</div>
+                                <div class="stat-label">Horas em Falta</div>
+                            </div>
+                            <div class="stat-card green">
+                                <div class="stat-value green" id="finalSalary">R$ 0,00</div>
+                                <div class="stat-label">Salário Final</div>
+                            </div>
+                        </div>
+
+                        <div class="details-section">
+                            <h3 class="rates-title">Detalhamento Financeiro</h3>
+                            <div class="details-grid">
+                                <div>
+                                    <div class="detail-row">
+                                        <span>Salário Base (220h):</span>
+                                        <span id="baseSalary">R$ 1.999,80</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Horas Extra Diurnas:</span>
+                                        <span id="extraDayPay">R$ 0,00</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Horas Extra Noturnas:</span>
+                                        <span id="extraNightPay">R$ 0,00</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="detail-row">
+                                        <span>Horas Extra Fim de Semana:</span>
+                                        <span id="extraWeekendPay">R$ 0,00</span>
+                                    </div>
+                                    <div class="detail-row" style="color: #dc2626;">
+                                        <span>Desconto por Faltas:</span>
+                                        <span id="discountPay">-R$ 0,00</span>
+                                    </div>
+                                    <div class="detail-total" style="color: #16a34a;">
+                                        <span>Total a Pagar:</span>
+                                        <span id="totalPay">R$ 1.999,80</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 12px; padding: 12px; background: #dcfce7; border-radius: 6px; font-size: 12px; color: #166534;">
+                                <strong>☁️ Dados Sincronizados:</strong> Todos os registros são salvos automaticamente na nuvem e acessíveis de qualquer dispositivo.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Registros -->
+                    <div class="card">
+                        <h2 class="section-title">
+                            📋 <span id="recordsTitle">Registros do Mês</span>
+                        </h2>
+                        
+                        <div id="recordsList" class="records-list">
+                            <div class="empty-state">
+                                <div class="empty-icon">⚠️</div>
+                                <p>Nenhum registro encontrado para este mês</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
         // Valores das horas
@@ -511,9 +604,11 @@
         };
 
         // Estados globais
+        let db = null;
         let records = [];
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
+        let isFirebaseInitialized = false;
 
         // Nomes dos meses
         const monthNames = [
@@ -523,11 +618,18 @@
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
-            loadData();
             updateMonthSelect();
-            updateDisplay();
             
-            // Set data atual - garantindo formato correto
+            // Verificar se Firebase carregou
+            setTimeout(() => {
+                if (typeof firebase === 'undefined') {
+                    updateStatus('offline', '❌ Firebase não carregou - Verifique conexão');
+                    return;
+                }
+                checkStoredConfig();
+            }, 1000); // Aguarda 1 segundo para scripts carregarem
+            
+            // Set data atual
             const today = new Date();
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -538,26 +640,92 @@
             // Event listeners
             document.getElementById('monthSelect').addEventListener('change', function() {
                 currentMonth = parseInt(this.value);
-                updateDisplay();
+                loadRecords();
             });
             
             document.getElementById('yearSelect').addEventListener('change', function() {
                 currentYear = parseInt(this.value);
-                updateDisplay();
+                loadRecords();
             });
         });
 
-        // Salvar dados no localStorage
-        function saveData() {
-            localStorage.setItem('timesheetRecords', JSON.stringify(records));
+        // Verificar configuração armazenada
+        function checkStoredConfig() {
+            const stored = localStorage.getItem('firebaseConfig');
+            if (stored) {
+                try {
+                    const config = JSON.parse(stored);
+                    Object.keys(config).forEach(key => {
+                        const input = document.getElementById(key);
+                        if (input) input.value = config[key];
+                    });
+                    initializeFirebase();
+                } catch (e) {
+                    console.error('Erro ao carregar configuração:', e);
+                }
+            }
         }
 
-        // Carregar dados do localStorage
-        function loadData() {
-            const saved = localStorage.getItem('timesheetRecords');
-            if (saved) {
-                records = JSON.parse(saved);
+        // Inicializar Firebase
+        function initializeFirebase() {
+            // Verificar se Firebase carregou
+            if (typeof firebase === 'undefined') {
+                alert('❌ Erro: Firebase não carregou. Verifique sua conexão de internet e recarregue a página.');
+                return;
             }
+
+            const config = {
+                apiKey: document.getElementById('apiKey').value.trim(),
+                authDomain: document.getElementById('authDomain').value.trim(),
+                projectId: document.getElementById('projectId').value.trim(),
+                storageBucket: document.getElementById('storageBucket').value.trim(),
+                messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
+                appId: document.getElementById('appId').value.trim()
+            };
+
+            // Validar campos obrigatórios
+            if (!config.apiKey || !config.projectId) {
+                alert('❌ Por favor, preencha pelo menos API Key e Project ID');
+                return;
+            }
+
+            try {
+                // Verificar se já foi inicializado
+                if (firebase.apps.length === 0) {
+                    firebase.initializeApp(config);
+                }
+                
+                db = firebase.firestore();
+                
+                // Testar conexão
+                db.collection('test').limit(1).get()
+                    .then(() => {
+                        // Conexão OK
+                        localStorage.setItem('firebaseConfig', JSON.stringify(config));
+                        
+                        document.getElementById('configSection').style.display = 'none';
+                        document.getElementById('mainSystem').classList.remove('hidden');
+                        updateStatus('online', '✅ Conectado ao Firebase');
+                        
+                        isFirebaseInitialized = true;
+                        loadRecords();
+                    })
+                    .catch((error) => {
+                        console.error('Erro ao testar conexão:', error);
+                        updateStatus('offline', '❌ Erro na configuração: Verifique as credenciais');
+                    });
+                
+            } catch (error) {
+                console.error('Erro ao inicializar Firebase:', error);
+                updateStatus('offline', '❌ Erro na configuração: ' + error.message);
+            }
+        }
+
+        // Atualizar status
+        function updateStatus(status, message) {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.className = `status-indicator status-${status}`;
+            indicator.innerHTML = `<span>${message.split(' ')[0]}</span><span>${message.substring(message.indexOf(' ') + 1)}</span>`;
         }
 
         // Atualizar seletor de mês
@@ -568,7 +736,7 @@
 
         // Verificar se é fim de semana (domingo)
         function isWeekend(date) {
-            return new Date(date + 'T00:00:00').getDay() === 0; // Domingo
+            return new Date(date + 'T00:00:00').getDay() === 0;
         }
 
         // Verificar se é sábado
@@ -591,16 +759,11 @@
             const totalHours = diffMs / (1000 * 60 * 60);
             
             // Descontar intervalo automaticamente
-            // Se trabalhou mais de 6 horas, desconta 1 hora de almoço
             if (totalHours > 6) {
                 return totalHours - 1;
-            }
-            // Se trabalhou entre 4 e 6 horas, desconta 15 minutos
-            else if (totalHours > 4) {
+            } else if (totalHours > 4) {
                 return totalHours - 0.25;
-            }
-            // Até 4 horas, sem desconto de intervalo
-            else {
+            } else {
                 return totalHours;
             }
         }
@@ -640,8 +803,37 @@
             return { day: dayExtraHours, night: nightHours, weekend: 0 };
         }
 
+        // Carregar registros do Firebase
+        async function loadRecords() {
+            if (!isFirebaseInitialized) return;
+            
+            try {
+                const snapshot = await db.collection('timeRecords')
+                    .where('month', '==', currentMonth)
+                    .where('year', '==', currentYear)
+                    .orderBy('date')
+                    .get();
+                
+                records = [];
+                snapshot.forEach(doc => {
+                    records.push({ id: doc.id, ...doc.data() });
+                });
+                
+                updateDisplay();
+                
+            } catch (error) {
+                console.error('Erro ao carregar registros:', error);
+                updateStatus('offline', '❌ Erro ao carregar dados');
+            }
+        }
+
         // Adicionar registro
-        function addRecord() {
+        async function addRecord() {
+            if (!isFirebaseInitialized) {
+                alert('Configure o Firebase primeiro');
+                return;
+            }
+
             const date = document.getElementById('dateInput').value;
             const entry = document.getElementById('entryInput').value;
             const exit = document.getElementById('exitInput').value;
@@ -651,70 +843,87 @@
                 return;
             }
 
-            const workedHours = calculateWorkedHours(entry, exit);
-            const expectedHours = getExpectedHours(date);
-            const extraHours = classifyExtraHours(date, entry, exit, workedHours);
+            // Mostrar loading
+            const button = document.getElementById('addButton');
+            const loading = document.getElementById('addLoading');
+            button.disabled = true;
+            loading.classList.remove('hidden');
 
-            const newRecord = {
-                id: Date.now(),
-                date: date,
-                entryTime: entry,
-                exitTime: exit,
-                workedHours: workedHours,
-                expectedHours: expectedHours,
-                extraHours: extraHours
-            };
+            try {
+                const workedHours = calculateWorkedHours(entry, exit);
+                const expectedHours = getExpectedHours(date);
+                const extraHours = classifyExtraHours(date, entry, exit, workedHours);
 
-            records.push(newRecord);
-            saveData();
-            updateDisplay();
+                const newRecord = {
+                    date: date,
+                    entryTime: entry,
+                    exitTime: exit,
+                    workedHours: workedHours,
+                    expectedHours: expectedHours,
+                    extraHours: extraHours,
+                    month: currentMonth,
+                    year: currentYear,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
 
-            // Limpar formulário
-            document.getElementById('entryInput').value = '';
-            document.getElementById('exitInput').value = '';
+                await db.collection('timeRecords').add(newRecord);
+                
+                // Limpar formulário
+                document.getElementById('entryInput').value = '';
+                document.getElementById('exitInput').value = '';
+                
+                // Recarregar dados
+                await loadRecords();
+                
+                updateStatus('online', '✅ Registro salvo na nuvem');
+
+            } catch (error) {
+                console.error('Erro ao salvar registro:', error);
+                updateStatus('offline', '❌ Erro ao salvar: ' + error.message);
+            } finally {
+                // Esconder loading
+                button.disabled = false;
+                loading.classList.add('hidden');
+            }
         }
 
         // Remover registro
-        function removeRecord(id) {
-            records = records.filter(record => record.id !== id);
-            saveData();
-            updateDisplay();
-        }
+        async function removeRecord(id) {
+            if (!isFirebaseInitialized) return;
+            
+            if (!confirm('Tem certeza que deseja remover este registro?')) return;
 
-        // Obter registros do mês atual
-        function getCurrentMonthRecords() {
-            return records.filter(record => {
-                const recordDate = new Date(record.date + 'T00:00:00');
-                return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
-            });
+            try {
+                await db.collection('timeRecords').doc(id).delete();
+                await loadRecords();
+                updateStatus('online', '✅ Registro removido');
+            } catch (error) {
+                console.error('Erro ao remover registro:', error);
+                updateStatus('offline', '❌ Erro ao remover');
+            }
         }
 
         // Calcular totais mensais
         function calculateMonthlyTotals() {
-            const monthRecords = getCurrentMonthRecords();
-            
             let totalWorkedHours = 0;
             let totalExpectedHours = 0;
             let totalExtraDay = 0;
             let totalExtraNight = 0;
             let totalExtraWeekend = 0;
-            let totalMissingHours = 0; // Soma das faltas individuais
+            let totalMissingHours = 0;
 
-            monthRecords.forEach(record => {
+            records.forEach(record => {
                 totalWorkedHours += record.workedHours;
                 totalExpectedHours += record.expectedHours;
                 totalExtraDay += record.extraHours.day;
                 totalExtraNight += record.extraHours.night;
                 totalExtraWeekend += record.extraHours.weekend;
                 
-                // Calcular faltas por dia (método correto)
                 const dailyShortage = Math.max(0, record.expectedHours - record.workedHours);
                 totalMissingHours += dailyShortage;
             });
 
-            // Usar o total de faltas individuais, não a diferença global
             const discountForMissingHours = totalMissingHours * hourlyRates.normal;
-
             const extraPayment = 
                 (totalExtraDay * hourlyRates.extraDay) +
                 (totalExtraNight * hourlyRates.extraNight) +
@@ -726,7 +935,7 @@
             return {
                 totalWorkedHours: totalWorkedHours.toFixed(2),
                 totalExpectedHours: totalExpectedHours.toFixed(2),
-                missingHours: totalMissingHours.toFixed(2), // Agora são as faltas reais
+                missingHours: totalMissingHours.toFixed(2),
                 totalExtraDay: totalExtraDay.toFixed(2),
                 totalExtraNight: totalExtraNight.toFixed(2),
                 totalExtraWeekend: totalExtraWeekend.toFixed(2),
@@ -739,12 +948,11 @@
 
         // Atualizar display
         function updateDisplay() {
-            const monthRecords = getCurrentMonthRecords();
             const totals = calculateMonthlyTotals();
 
             // Atualizar títulos
             document.getElementById('monthlyTitle').textContent = `Resumo - ${monthNames[currentMonth]} ${currentYear}`;
-            document.getElementById('recordsTitle').textContent = `Registros do Mês (${monthRecords.length} dias)`;
+            document.getElementById('recordsTitle').textContent = `Registros do Mês (${records.length} dias)`;
 
             // Atualizar estatísticas
             document.getElementById('totalWorked').textContent = totals.totalWorkedHours;
@@ -761,14 +969,14 @@
             document.getElementById('totalPay').textContent = `R$ ${totals.finalSalary}`;
 
             // Atualizar lista de registros
-            updateRecordsList(monthRecords);
+            updateRecordsList();
         }
 
         // Atualizar lista de registros
-        function updateRecordsList(monthRecords) {
+        function updateRecordsList() {
             const recordsList = document.getElementById('recordsList');
             
-            if (monthRecords.length === 0) {
+            if (records.length === 0) {
                 recordsList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">⚠️</div>
@@ -778,18 +986,16 @@
                 return;
             }
 
-            recordsList.innerHTML = monthRecords.map(record => {
+            recordsList.innerHTML = records.map(record => {
                 const totalExtra = (record.extraHours.day + record.extraHours.night + record.extraHours.weekend).toFixed(2);
                 const weekday = new Date(record.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'short' });
                 
-                // Calcular tempo bruto (sem desconto de intervalo)
                 const entryDate = new Date(`2000-01-01T${record.entryTime}:00`);
                 const exitDate = new Date(`2000-01-01T${record.exitTime}:00`);
                 if (exitDate < entryDate) exitDate.setDate(exitDate.getDate() + 1);
                 const grossHours = (exitDate - entryDate) / (1000 * 60 * 60);
                 const intervalDiscount = grossHours - record.workedHours;
                 
-                // Calcular falta do dia
                 const dailyShortage = Math.max(0, record.expectedHours - record.workedHours);
                 const hasShortage = dailyShortage > 0;
                 
@@ -822,98 +1028,11 @@
                                 </div>
                                 ` : ''}
                             </div>
-                            <button onclick="removeRecord(${record.id})" class="btn-danger">×</button>
+                            <button onclick="removeRecord('${record.id}')" class="btn-danger">×</button>
                         </div>
                     </div>
                 `;
             }).join('');
-        }
-
-        // Exportar dados (fazer backup)
-        function exportData() {
-            const dataToExport = {
-                records: records,
-                exportDate: new Date().toISOString(),
-                version: "1.0"
-            };
-
-            const dataStr = JSON.stringify(dataToExport, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-
-            const currentDate = new Date();
-            const fileName = `backup-controle-horas-${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}.json`;
-
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            alert(`✅ Backup realizado com sucesso!\n\nArquivo: ${fileName}\n\nGuarde este arquivo em local seguro (ex: Google Drive, OneDrive).`);
-        }
-
-        // Importar dados (restaurar backup)
-        function importData() {
-            const fileInput = document.getElementById('importFile');
-            const file = fileInput.files[0];
-
-            if (!file) return;
-
-            if (!file.name.endsWith('.json')) {
-                alert('❌ Por favor, selecione um arquivo de backup válido (.json)');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    
-                    // Validar estrutura do arquivo
-                    if (!importedData.records || !Array.isArray(importedData.records)) {
-                        throw new Error('Arquivo de backup inválido');
-                    }
-
-                    // Confirmar restauração
-                    const recordCount = importedData.records.length;
-                    const exportDate = importedData.exportDate ? new Date(importedData.exportDate).toLocaleDateString('pt-BR') : 'desconhecida';
-                    
-                    const confirmRestore = confirm(
-                        `🔄 Restaurar Backup?\n\n` +
-                        `• Registros no backup: ${recordCount}\n` +
-                        `• Data do backup: ${exportDate}\n` +
-                        `• Registros atuais: ${records.length}\n\n` +
-                        `⚠️ ATENÇÃO: Isto substituirá todos os dados atuais!\n\n` +
-                        `Continuar?`
-                    );
-
-                    if (!confirmRestore) return;
-
-                    // Fazer backup dos dados atuais antes de restaurar
-                    const currentBackup = {
-                        records: records,
-                        exportDate: new Date().toISOString(),
-                        version: "1.0"
-                    };
-                    localStorage.setItem('timesheetRecords_backup_before_restore', JSON.stringify(currentBackup));
-
-                    // Restaurar dados
-                    records = importedData.records;
-                    saveData();
-                    updateDisplay();
-
-                    alert(`✅ Backup restaurado com sucesso!\n\n${recordCount} registros foram carregados.\n\nOs dados anteriores foram salvos como backup de segurança.`);
-
-                } catch (error) {
-                    alert(`❌ Erro ao restaurar backup:\n\n${error.message}\n\nVerifique se o arquivo é um backup válido do sistema.`);
-                }
-            };
-
-            reader.readAsText(file);
-            fileInput.value = ''; // Limpar input
         }
     </script>
 </body>
